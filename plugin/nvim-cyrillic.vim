@@ -14,7 +14,13 @@ setlocal spell spelllang=ru_ru,en_us
 syntax spell toplevel
 " ------------------------------------- "
 
-inoremap <c-k> <c-\><c-o>:exec MapLayout()<CR><Right><c-^><esc>
+function MapLayoutAndRestPos()
+    let vv=winsaveview()
+    exec MapLayout()
+    call winrestview(vv)
+endfunction
+
+inoremap <c-k> <c-\><c-o>:call MapLayoutAndRestPos()<CR><c-^><esc>
 inoremap <c-space> <c-^>
 
 
