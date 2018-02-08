@@ -10,7 +10,13 @@ set imsearch=0
 highlight lCursor guifg=None guibg=Cyan
 " ------------------------------------- "
 
-inoremap <c-k> <c-\><c-o>:exec MapLayout()<CR><Right><c-^><esc>
+function MapLayoutAndRestPos()
+    let vv=winsaveview()
+    exec MapLayout()
+    call winrestview(vv)
+endfunction
+
+inoremap <c-k> <c-\><c-o>:call MapLayoutAndRestPos()<CR><c-^><esc>
 inoremap <c-space> <c-^>
 
 

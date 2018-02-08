@@ -1,7 +1,7 @@
 """Change last input word
 If the last input is characters going after
 previous input without it, change only the last input
-and leave the preceeding text intact.
+and leave the preceding text intact.
 
 """
 import neovim
@@ -52,7 +52,7 @@ class Main(object):
         # cur_col = shift_pos_inv[cur_col_inv]
         last_ins_pos = shift_pos_inv[last_ins_pos[1]]
 
-        if cur_col == last_ins_pos + 1:
+        if cur_col < last_ins_pos:
             return
 
         if cur_col != len(cur_line) - 1:
@@ -70,7 +70,6 @@ class Main(object):
                 cur_line[cur_col - ii - jj] = self.map_char(char)
             else:
                 break
-
         self.nvim.current.line = ''.join(cur_line)
         cur_line_new = self.nvim.current.line
         shift_pos_new = dict()
