@@ -8,10 +8,6 @@ set keymap=russian-jcukenwin
 set iminsert=0
 set imsearch=0
 highlight lCursor guifg=None guibg=Cyan
-setlocal spell spelllang=ru_yo,en_us
-setlocal spell spelllang=ru_ru,en_us
-
-syntax spell toplevel
 " ------------------------------------- "
 
 inoremap <c-k> <c-\><c-o>:exec MapLayout()<CR><Right><c-^><esc>
