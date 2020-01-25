@@ -25,7 +25,7 @@ class Main(object):
                      'р':1, 'с':1, 'т':1, 'у':1, 'ф':1,
                      'х':1, 'ц':1, 'ч':1, 'ш':1, 'щ':1,
                      'ъ':1, 'ы':1, 'ь':1, 'э':1, 'ю':1,
-                     'я':1, '"':0, '№':2, ';':1, ':':0,
+                     'я':1, '"':0, '№':2, ';':0, ':':0,
                      '?':0, '.':0, ',':0, ' ':0, '\\':0
                     }
         self.nvim.command('normal `]')
@@ -102,6 +102,6 @@ class Main(object):
         map_ru_en = dict([[v, k] for k, v in map_en_ru.items()])
         layout_mapping = map_en_ru.copy()
         layout_mapping.update(map_ru_en)
-        if char.isprintable():
+        if char.isprintable() and (char in layout_mapping):
             return layout_mapping[char]
         return char

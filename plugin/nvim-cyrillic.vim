@@ -21,6 +21,3 @@ inoremap <c-u> <Esc>ua
 inoremap <c-space> <c-^>
 nnoremap <c-space> a<c-^><Esc>
 cnoremap <c-space> <c-^>
-
-
-
