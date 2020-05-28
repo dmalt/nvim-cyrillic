@@ -17,8 +17,7 @@ function MapLayoutAndRestPos()
 endfunction
 
 inoremap <c-k> <c-\><c-o>:call MapLayoutAndRestPos()<CR><c-^><esc>
+inoremap <c-u> <Esc>ua
 inoremap <c-space> <c-^>
 nnoremap <c-space> a<c-^><Esc>
 cnoremap <c-space> <c-^>
-
-
