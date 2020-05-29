@@ -1,0 +1,46 @@
+*nvim-cyrillic.txt* Fix fucked up layout switches when writing cyrillic text.
+
+INTRODUCTION                        *cyrillic*
+
+This plugin is a collection of settings for russian language support in vim
+plus a script to get punto-switcher-like functionality.
+I.e. when you start typing in a wrong language it
+converts the last input to an alternative layout by a single keystroke.
+
+SWITCHING LAYOUT                    *cyrillic-switch*
+
+Say you are working on a latex document with russian text.
+Your current input is
+
+Мама мыла раму*
+              ^ your cursor
+
+An iminsert=1 meaning that you're typing in russian.
+Then you exit to the normal mode, do some edits and start typing again,
+but this time you want to make a latex reference but you forgot to switch
+layout to english. All you need to do is press <C-k>:
+
+             Old text               Command      New text ~
+             Мама мыла раму \куа*   <C-k>        Мама мыла раму \ref*
+Input Method~
+             Ru                                  En
+
+MAPPINGS                            *cyrillic-mappings*
+
+char         action~
+--------------------------------------------------------------------------
+                                           *i_CTRL-Space*
+<C-Space>    Toggle keyboard layout in insert mode
+                                           *n_CTRL-Space*
+<C-Space>    Toggle keyboard layout in normal mode
+                                           *i_CTRL-k*
+<C-k>        Switch layout of the last input and toggle the input method
+
+SETTINGS                            *cyrillic-settings*
+
+The plugin sets up the following options:
+
+  set keymap=russian-jcukenwin
+  set iminsert=0
+  set imsearch=0
+  highlight lCursor guifg=None guibg=Cyan
