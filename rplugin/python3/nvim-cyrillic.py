@@ -4,172 +4,60 @@ previous input without it, change only the last input
 and leave the preceding text intact.
 
 """
-# a $jks$j
-# a asjkkj
-import neovim
+import pynvim
 
 
-@neovim.plugin
+# rutab = """ЁёАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"№;:?.,"""  # noqa
+# entab = """~`F<DULT:PBQRKVYJGHCNEA{WXIO}SM">Zf,dult;pbqrkvyjghcnea[wxio]sm'.z@#$^&/?"""  # noqa
+rutab = """ЁёАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"""  # noqa
+entab = """~`F<DULT:PBQRKVYJGHCNEA{WXIO}SM">Zf,dult;pbqrkvyjghcnea[wxio]sm'.z"""  # noqa
+ru_en = str.maketrans(rutab, entab)
+en_ru = str.maketrans(entab, rutab)
+
+
+@pynvim.plugin
 class Main(object):
     def __init__(self, nvim):
         self.nvim = nvim
 
-    @neovim.function("MapLayout")
-    def map_layout(self, args, sync=True):
-        # Move cursor to where the last input ends
-        # self.nvim.command("normal `]")
+    @pynvim.function("MapLayout", sync=True)
+    def map_layout(self, args):
         cur_line = self.nvim.current.line
         # Cursor and mark positions are returned by API as bytes offsets
         # which matters for unicode characters which are encoded by more than
         # one byte per char
-        cur_line_bytes = cur_line.encode()
-        last_ins_pos = self.nvim.current.buffer.mark("[")
+        cur_line_bytes = cur_line.encode("utf-8")
+        start_ins_pos = self.nvim.current.buffer.mark("[")
         cursor = self.nvim.current.window.cursor
 
-        if cursor[0] != last_ins_pos[0]:
+        if cursor[0] != start_ins_pos[0]:
             # handle linebreaks during input
-            last_ins_pos[1] = 0
-        cursor_col = cursor[1]
+            start_ins_col = 0
+        else:
+            start_ins_col = start_ins_pos[1]
+        end_ins_col = cursor[1]
 
-        last_input_bytes = cur_line_bytes[last_ins_pos:cursor_col]
-        last_input = last_input_bytes.decode()
-        last_input_translate = "".join([self.map_char(c) for c in last_input])
+        last_input_bytes = cur_line_bytes[start_ins_col:end_ins_col]
+        last_input = last_input_bytes.decode("utf-8")
+        is_ru = self.nvim.request("nvim_get_option", "iminsert")
+        if is_ru:
+            self.nvim.command("set iminsert=0")  # change input language
+            last_input_translate = last_input.translate(ru_en)
+        else:
+            self.nvim.command("set iminsert=1")  # change input language
+            last_input_translate = last_input.translate(en_ru)
+
         last_input_translate_bytes = last_input_translate.encode()
 
         new_cur_line_bytes = (
-            cur_line_bytes[:last_ins_pos]
+            cur_line_bytes[:start_ins_col]
             + last_input_translate_bytes
-            + cur_line_bytes[cursor_col:]
+            + cur_line_bytes[end_ins_col:]
         )
         new_cur_line = new_cur_line_bytes.decode()
         self.nvim.current.line = new_cur_line
-        self.nvim.current.window.cursor = [
-            cursor[0],
-            cursor[1]
-            + len(last_input_translate_bytes)
-            - len(last_input_bytes),
-        ]
-
-        # if cursor_col < last_ins_pos:
-        #     return
-
-        # if cur_col != len(cur_line) - 1:
-        #     cur_col -= 1
-
-        # # set ii to index of last nonspace character
-        # for ii, char in enumerate(cur_line[: cur_col + 1][::-1]):
-        #     # Skip trailing spaces
-        #     if not char.isspace():
-        #         break
-
-        # for jj, char in enumerate(cur_line[: cur_col - ii + 1][::-1]):
-        #     if last_ins_pos > cur_col - ii - jj:
-        #         # we reached the start of previous input
-        #         break
-        #     if not char.isspace():
-        #         cur_line[cur_col - ii - jj] = self.map_char(char)
-        #     else:
-        #         # translate only the last word
-        #         break
-        # self.nvim.current.line = "".join(cur_line)
-
-        # -------- insert translated string and calc new cursor pos -------- #
-        # cur_line_new = self.nvim.current.line
-        # shift_pos_new = dict()
-        # shift_pos_new[0] = 0
-        # for ii, char in enumerate(cur_line_new):
-        #     if char in cur_shift:
-        #         shift_pos_new[ii + 1] = shift_pos_new[ii] + 1 + cur_shift[char]
-        #     else:
-        #         shift_pos_new[ii + 1] = shift_pos_new[ii] + 1
-        # self.nvim.current.window.cursor = (cursor[0], shift_pos_new[cur_col])
-        # self.nvim.feedkeys("a")
-        # ------------------------------------------------------------------ #
-
-    def map_char(self, char):
-        map_en_ru = {
-            "~": "Ё",
-            "`": "ё",
-            "F": "А",
-            "<": "Б",
-            "D": "В",
-            "U": "Г",
-            "L": "Д",
-            "T": "Е",
-            ":": "Ж",
-            "P": "З",
-            "B": "И",
-            "Q": "Й",
-            "R": "К",
-            "K": "Л",
-            "V": "М",
-            "Y": "Н",
-            "J": "О",
-            "G": "П",
-            "H": "Р",
-            "C": "С",
-            "N": "Т",
-            "E": "У",
-            "A": "Ф",
-            "{": "Х",
-            "W": "Ц",
-            "X": "Ч",
-            "I": "Ш",
-            "O": "Щ",
-            "}": "Ъ",
-            "S": "Ы",
-            "M": "Ь",
-            '"': "Э",
-            ">": "Ю",
-            "Z": "Я",
-            "f": "а",
-            ",": "б",
-            "d": "в",
-            "u": "г",
-            "l": "д",
-            "t": "е",
-            ";": "ж",
-            "p": "з",
-            "b": "и",
-            "q": "й",
-            "r": "к",
-            "k": "л",
-            "v": "м",
-            "y": "н",
-            "j": "о",
-            "g": "п",
-            "h": "р",
-            "c": "с",
-            "n": "т",
-            "e": "у",
-            "a": "ф",
-            "[": "х",
-            "w": "ц",
-            "x": "ч",
-            "i": "ш",
-            "o": "щ",
-            "]": "ъ",
-            "s": "ы",
-            "m": "ь",
-            "'": "э",
-            ".": "ю",
-            "z": "я",
-            "@": '"',
-            "#": "№",
-            "$": ";",
-            "^": ":",
-            "&": "?",
-            "/": ".",
-            "?": ",",
-            " ": " ",
-            "\\": "\\",
-        }
-        map_ru_en = dict([[v, k] for k, v in map_en_ru.items()])
-        layout_mapping = map_en_ru.copy()
-        layout_mapping.update(map_ru_en)
-        if char.isprintable() and (char in layout_mapping):
-            return layout_mapping[char]
-        return char
+        cursor_delta = len(last_input_translate_bytes) - len(last_input_bytes)
+        self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
 
 
 if __name__ == "__main__":
