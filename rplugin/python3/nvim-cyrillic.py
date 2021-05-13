@@ -1,4 +1,7 @@
 import pynvim
+import logging
+
+logging.basicConfig(level=logging.DEBUG, filename="nvim-cyrillic.log")
 
 
 rutab = """ЁёАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"№;:?.,"""  # noqa
@@ -30,6 +33,7 @@ class Main(object):
 
     @pynvim.function("MapVisualSelection", sync=True)
     def map_visual(self, args):
+        logging.debug(f"Current line: {self.nvim.current.line}")
         line_bytes = self.nvim.current.line.encode("utf-8")
         lo, hi, cursor = self._get_visual_selection()
 
@@ -39,13 +43,16 @@ class Main(object):
         self._replace_line(new_cur_line, cursor, cursor_delta)
 
     def _replace_line(self, text, cursor, cursor_delta):
+        logging.debug(f"New line: {text}")
         self.nvim.current.line = text
+        logging.debug(f"New cursor: {cursor[0]}, {cursor[1] + cursor_delta}")
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
 
     def _get_visual_selection(self):
         lo = self.nvim.current.buffer.mark("<")[1]
         hi = self.nvim.current.buffer.mark(">")[1]
         cursor = self.nvim.current.window.cursor
+        logging.debug(f"Low: {lo}, High: {hi}, Cursor: {cursor}")
         return lo, hi + 1, cursor
 
     def _get_last_input_byte_inds(self):
