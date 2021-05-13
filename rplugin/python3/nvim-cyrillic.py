@@ -55,7 +55,17 @@ class Main(object):
         hi = self.nvim.current.buffer.mark(">")[1]
         cursor = self.nvim.current.window.cursor
         logger.debug(f"Low: {lo}, High: {hi}, Cursor: {cursor}")
-        return lo, hi + 1, cursor
+        line_bytes = self.nvim.current.line.encode("utf-8")
+        # hi mark is set on the last character in visual selection, i.e.
+        # the last character will not be included in slice. Therefore we need
+        # to forward hi ind by one character respecting its unicode number of
+        # bytes; at the end of line hi should be forwarded by 1
+        hi_offset = len(line_bytes[hi:].decode()[0].encode("utf-8"))
+        if not hi_offset:
+            # end of line case
+            hi_offset = 1
+        logger.debug(f"hi_offset: {hi_offset}")
+        return lo, hi + hi_offset, cursor
 
     def _get_last_input_byte_inds(self):
         """Get positions of last input start, last input end and cursor
