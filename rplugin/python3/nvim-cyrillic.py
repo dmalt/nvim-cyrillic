@@ -32,6 +32,7 @@ class Main(object):
         self._toggle_language()
         new_cur_line = line_bytes.decode()
         self._replace_line(new_cur_line, cursor, cursor_delta)
+        self._update_cursor(cursor, cursor_delta)
 
     @pynvim.function("MapVisualSelection", sync=True)
     def map_visual(self, args):
@@ -42,11 +43,16 @@ class Main(object):
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
         line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
         new_cur_line = line_bytes.decode()
-        self._replace_line(new_cur_line, cursor, cursor_delta)
+        self._replace_line(new_cur_line)
+        self._update_cursor(
+            [cursor[0], self.nvim.current.buffer.mark(">")[1]], cursor_delta
+        )
 
-    def _replace_line(self, text, cursor, cursor_delta):
+    def _replace_line(self, text):
         logger.debug(f"New line: {text}")
         self.nvim.current.line = text
+
+    def _update_cursor(self, cursor, cursor_delta):
         logger.debug(f"New cursor: {cursor[0]}, {cursor[1] + cursor_delta}")
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
 
