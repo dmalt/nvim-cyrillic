@@ -49,8 +49,8 @@ class Main(object):
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
 
     def _get_visual_selection(self):
-        lo = self.nvim.current.buffer.mark("<")
-        hi = self.nvim.current.buffer.mark(">")
+        lo = self.nvim.current.buffer.mark("<")[1]
+        hi = self.nvim.current.buffer.mark(">")[1]
         cursor = self.nvim.current.window.cursor
         return lo, hi, cursor
 
