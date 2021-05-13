@@ -52,7 +52,7 @@ class Main(object):
         lo = self.nvim.current.buffer.mark("<")[1]
         hi = self.nvim.current.buffer.mark(">")[1]
         cursor = self.nvim.current.window.cursor
-        return lo, hi, cursor
+        return lo, hi + 1, cursor
 
     def _get_last_input_byte_inds(self):
         """Get positions of last input start, last input end and cursor
