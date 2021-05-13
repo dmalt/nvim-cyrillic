@@ -52,7 +52,7 @@ class Main(object):
 
     def _toggle_language(self):
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
-        self.nvim.command(f"set iminsert={not is_ru}")
+        self.nvim.command(f"set iminsert={int(not is_ru)}")
 
 
 def _map_bytes(text_bytes, lo, hi, is_ru):
