@@ -11,15 +11,7 @@ highlight lCursor guifg=None guibg=Cyan
 "     call winrestview(vv)
 " endfunction
 
-function MyMapLayout()
-    " let vv=winsaveview()
-    call MapLayout()
-
-    " call winrestview(vv)
-    " normal m]
-endfunction
-
-inoremap <c-k> <c-\><c-o>:call MyMapLayout()<CR>
+inoremap <c-k> <c-\><c-o>:call MapLastInput()<CR>
 
 " inoremap <c-u> <Esc>ua
 inoremap <c-space> <c-^>
