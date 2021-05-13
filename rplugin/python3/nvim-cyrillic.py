@@ -1,9 +1,3 @@
-"""Change last input word
-If the last input is characters going after
-previous input without it, change only the last input
-and leave the preceding text intact.
-
-"""
 import pynvim
 
 
