@@ -28,7 +28,9 @@ class Main(object):
         line_bytes = self.nvim.current.line.encode("utf-8")
         lo, hi, cursor = self._get_last_input_byte_inds()
 
-        line_bytes, cursor_delta = self._translate_bytes(line_bytes, lo, hi)
+        is_ru = self.nvim.request("nvim_get_option", "iminsert")
+        line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
+        self._toggle_language()
         new_cur_line = line_bytes.decode()
         self.nvim.current.line = new_cur_line
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
@@ -48,22 +50,25 @@ class Main(object):
         end_ins_col = cursor[1]
         return start_ins_col, end_ins_col, cursor
 
-    def _translate_bytes(self, text_bytes, lo, hi):
-        text_crop = text_bytes[lo:hi].decode("utf-8")
-        crop_translate_bytes = self._translate(text_crop).encode()
-        delta = len(crop_translate_bytes) - (hi - lo)
-        return text_bytes[:lo] + crop_translate_bytes + text_bytes[hi:], delta
-
-    def _translate(self, text):
-        """Translate characters and switch language"""
+    def _toggle_language(self):
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
-        if is_ru:
-            self.nvim.command("set iminsert=0")  # change input language
-            text_translate = text.translate(ru_en)
-        else:
-            self.nvim.command("set iminsert=1")  # change input language
-            text_translate = text.translate(en_ru)
-        return text_translate
+        self.nvim.command(f"set iminsert={not is_ru}")
+
+
+def _map_bytes(text_bytes, lo, hi, is_ru):
+    text_crop = text_bytes[lo:hi].decode("utf-8")
+    crop_translate_bytes = _map_text(text_crop, is_ru).encode()
+    delta = len(crop_translate_bytes) - (hi - lo)
+    return text_bytes[:lo] + crop_translate_bytes + text_bytes[hi:], delta
+
+
+def _map_text(text, is_ru):
+    """Translate characters and switch language"""
+    if is_ru:
+        text_translate = text.translate(ru_en)
+    else:
+        text_translate = text.translate(en_ru)
+    return text_translate
 
 
 if __name__ == "__main__":
