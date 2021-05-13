@@ -6,7 +6,7 @@ highlight lCursor guifg=None guibg=Cyan
 " ------------------------------------- "
 
 inoremap <c-k> <c-\><c-o>:call MapLastInput()<CR>
-vnoremap <c-k> :call MapVisualSelection()<CR>
+vnoremap <c-k> :<c-u>call MapVisualSelection()<CR>
 
 " inoremap <c-u> <Esc>ua
 " Switch language with <c-space>
