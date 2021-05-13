@@ -39,13 +39,8 @@ class Main(object):
 
         last_input_bytes = cur_line_bytes[start_ins_col:end_ins_col]
         last_input = last_input_bytes.decode("utf-8")
-        is_ru = self.nvim.request("nvim_get_option", "iminsert")
-        if is_ru:
-            self.nvim.command("set iminsert=0")  # change input language
-            last_input_translate = last_input.translate(ru_en)
-        else:
-            self.nvim.command("set iminsert=1")  # change input language
-            last_input_translate = last_input.translate(en_ru)
+
+        last_input_translate = self._translate(last_input)
 
         last_input_translate_bytes = last_input_translate.encode()
 
@@ -58,6 +53,16 @@ class Main(object):
         self.nvim.current.line = new_cur_line
         cursor_delta = len(last_input_translate_bytes) - len(last_input_bytes)
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
+
+    def _translate(self, text):
+        is_ru = self.nvim.request("nvim_get_option", "iminsert")
+        if is_ru:
+            self.nvim.command("set iminsert=0")  # change input language
+            text_translate = text.translate(ru_en)
+        else:
+            self.nvim.command("set iminsert=1")  # change input language
+            text_translate = text.translate(en_ru)
+        return text_translate
 
 
 if __name__ == "__main__":
