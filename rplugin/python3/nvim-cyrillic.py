@@ -32,8 +32,27 @@ class Main(object):
         line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
         self._toggle_language()
         new_cur_line = line_bytes.decode()
-        self.nvim.current.line = new_cur_line
+        self._replace_line(new_cur_line, cursor, cursor_delta)
+
+    @pynvim.function("MapVisualSelection", sync=True)
+    def map_visual(self, args):
+        line_bytes = self.nvim.current.line.encode("utf-8")
+        lo, hi, cursor = self._get_visual_selection()
+
+        is_ru = self.nvim.request("nvim_get_option", "iminsert")
+        line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
+        new_cur_line = line_bytes.decode()
+        self._replace_line(new_cur_line, cursor, cursor_delta)
+
+    def _replace_line(self, text, cursor, cursor_delta):
+        self.nvim.current.line = text
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
+
+    def _get_visual_selection(self):
+        lo = self.nvim.current.buffer.mark("`<")
+        hi = self.nvim.current.buffer.mark("`>")
+        cursor = self.nvim.current.window.cursor
+        return lo, hi, cursor
 
     def _get_last_input_byte_inds(self):
         """Get positions of last input start, last input end and cursor
