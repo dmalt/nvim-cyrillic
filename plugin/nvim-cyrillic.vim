@@ -5,15 +5,10 @@ set imsearch=0
 highlight lCursor guifg=None guibg=Cyan
 " ------------------------------------- "
 
-" function MapLayoutAndRestPos()
-"     let vv=winsaveview()
-"     exec MapLayout()
-"     call winrestview(vv)
-" endfunction
-
 inoremap <c-k> <c-\><c-o>:call MapLastInput()<CR>
 
 " inoremap <c-u> <Esc>ua
+" Switch language with <c-space>
 inoremap <c-space> <c-^>
 nnoremap <c-space> a<c-^><Esc>
 cnoremap <c-space> <c-^>
