@@ -31,7 +31,7 @@ class Main(object):
         line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
         self._toggle_language()
         new_cur_line = line_bytes.decode()
-        self._replace_line(new_cur_line, cursor, cursor_delta)
+        self._replace_line(new_cur_line)
         self._update_cursor(cursor, cursor_delta)
 
     @pynvim.function("MapVisualSelection", sync=True)
