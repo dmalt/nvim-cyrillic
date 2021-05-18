@@ -53,7 +53,9 @@ def test_map_last_input_single_word_ru_en(nvim):
     string = "руддщ"
     translation = "hello"
     main = plug.Main(nvim)
-    main._toggle_language()
+    is_ru = nvim.request("nvim_get_option", "iminsert")
+    if not is_ru:
+        nvim.command(f"set iminsert={int(not is_ru)}")
     nvim.feedkeys(f"i{string}")
     cursor = nvim.current.window.cursor
     assert cursor[0] == 1
