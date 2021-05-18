@@ -38,6 +38,8 @@ def nvim():
 def test_map_last_input_single_word_en_ru(nvim):
     string = "hello"
     translation = "руддщ"
+    # check if current language is english
+    assert nvim.request("nvim_get_option", "iminsert") == 0
     nvim.feedkeys(f"i{string}")
     cursor = nvim.current.window.cursor
     assert cursor[0] == 1
@@ -47,6 +49,8 @@ def test_map_last_input_single_word_en_ru(nvim):
     buf = nvim.current.buffer
     assert len(buf) == 1
     assert buf[0] == translation
+    # check if language is switched to russian
+    assert nvim.request("nvim_get_option", "iminsert") == 1
 
 
 def test_map_last_input_single_word_ru_en(nvim):
@@ -64,3 +68,5 @@ def test_map_last_input_single_word_ru_en(nvim):
     buf = nvim.current.buffer
     assert len(buf) == 1
     assert buf[0] == translation
+    # check if language is switched back to english
+    assert nvim.request("nvim_get_option", "iminsert") == 0
