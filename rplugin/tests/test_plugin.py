@@ -58,9 +58,8 @@ def test_map_last_input(nvim, string, translation, lang):
     nvim.command(f"set iminsert={lang}")
     nvim.feedkeys(f"i{string}")
 
-    cursor = nvim.current.window.cursor
-    assert cursor[0] == 1
-    assert cursor[1] == len(string.encode("utf-8"))
+    assert nvim.current.window.cursor[0] == 1
+    assert nvim.current.window.cursor[1] == len(string.encode("utf-8"))
 
     main = plug.Main(nvim)
     main.map_last_input(args=None)
@@ -70,21 +69,33 @@ def test_map_last_input(nvim, string, translation, lang):
     # check if language is switched
     assert nvim.request("nvim_get_option", "iminsert") == int(not lang)
 
+    assert nvim.current.window.cursor[0] == 1
+    assert nvim.current.window.cursor[1] == len(translation.encode("utf-8"))
 
-# def test_map_visual_word_ru_en(nvim):
-#     string = "руддщ"
-#     translation = "hello"
-#     main = plug.Main(nvim)
-#     is_ru = nvim.request("nvim_get_option", "iminsert")
-#     if not is_ru:
-#         nvim.command(f"set iminsert={int(not is_ru)}")
-#     nvim.feedkeys(f"i{string}")
-#     cursor = nvim.current.window.cursor
-#     assert cursor[0] == 1
-#     assert cursor[1] == len(string.encode("utf-8"))
-#     main.map_last_input(args=None)
-#     buf = nvim.current.buffer
-#     assert len(buf) == 1
-#     assert buf[0] == translation
-#     # check if language is switched back to english
-#     assert nvim.request("nvim_get_option", "iminsert") == 0
+
+@pytest.mark.parametrize(
+    "string,translation,lang",
+    [
+        ("hello", "руддщ", EN),
+        ("руддщ", "hello", RU),
+    ],
+)
+def test_map_visual_word_ru_en(nvim, string, translation, lang):
+    main = plug.Main(nvim)
+    nvim.command(f"set iminsert={lang}")
+    nvim.feedkeys(f"i{string}")
+    nvim.feedkeys(nvim.replace_termcodes("<esc>"))
+    cursor = nvim.current.window.cursor
+    assert cursor[0] == 1
+    assert cursor[1] == len(string[:-1].encode("utf-8"))
+
+    nvim.feedkeys(nvim.replace_termcodes("viw<esc>"))
+    main.map_visual(args=None)
+    buf = nvim.current.buffer
+    assert len(buf) == 1
+    assert buf[0] == translation
+
+    assert nvim.current.window.cursor[0] == 1
+    assert nvim.current.window.cursor[1] == len(
+        translation[:-1].encode("utf-8")
+    )
