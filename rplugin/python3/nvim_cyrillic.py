@@ -7,7 +7,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler(Path(__file__).parent / "nvim_cyrillic.log")
 file_handler.setFormatter(
-    fmt="%(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p"
+    logging.Formatter(
+        fmt="%(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p"
+    )
 )
 logger.addHandler(file_handler)
 
