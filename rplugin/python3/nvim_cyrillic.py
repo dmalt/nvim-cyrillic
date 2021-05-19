@@ -34,7 +34,7 @@ class NvimHandler(logging.StreamHandler):
 
     def emit(self, record):
         msg = self.format(record)
-        self.nvim.command(f"echom '{msg}'")
+        self.nvim.command(f'''echom "{msg}"''')
 
 
 @pynvim.plugin
