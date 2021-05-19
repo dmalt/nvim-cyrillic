@@ -38,7 +38,7 @@ class Main(object):
     def map_visual(self, args):
         logger.debug(f"Current line: {self.nvim.current.line}")
         line_bytes = self.nvim.current.line.encode("utf-8")
-        lo, hi, cursor = self._get_visual_selection()
+        lo, hi, cursor = self._get_visual_selection_byte_inds()
 
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
         line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
@@ -56,7 +56,7 @@ class Main(object):
         logger.debug(f"New cursor: {cursor[0]}, {cursor[1] + cursor_delta}")
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
 
-    def _get_visual_selection(self):
+    def _get_visual_selection_byte_inds(self):
         lo = self.nvim.current.buffer.mark("<")[1]
         hi = self.nvim.current.buffer.mark(">")[1]
         cursor = self.nvim.current.window.cursor
