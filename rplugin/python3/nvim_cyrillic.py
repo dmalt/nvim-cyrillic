@@ -5,7 +5,9 @@ import pynvim
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-file_handler = logging.FileHandler(Path(__file__).parent / "nvim_cyrillic.log")
+file_handler = logging.RotatingFileHandler(
+    Path(__file__).parent / "nvim_cyrillic.log", max_bytes=1e6, backupCount=1
+)
 file_handler.setFormatter(
     logging.Formatter(
         fmt="%(asctime)s - %(levelname)s - %(message)s",
