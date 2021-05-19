@@ -5,10 +5,11 @@ import pynvim
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.addHandler(
-    logging.FileHandler(Path(__file__).parent / "nvim_cyrillic.log")
+file_handler = logging.FileHandler(Path(__file__).parent / "nvim_cyrillic.log")
+file_handler.setFormatter(
+    fmt="%(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p"
 )
-
+logger.addHandler(file_handler)
 
 rutab = """ЁёАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"№;:?.,"""  # noqa
 entab = """~`F<DULT:PBQRKVYJGHCNEA{WXIO}SM">Zf,dult;pbqrkvyjghcnea[wxio]sm'.z@#$^&/?"""  # noqa
