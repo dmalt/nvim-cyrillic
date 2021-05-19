@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 file_handler = RotatingFileHandler(
     Path(__file__).parent.parent / "logs" / "nvim_cyrillic.log",
-    max_bytes=1e6,
+    maxBytes=1e6,
     backupCount=1,
 )
 file_handler.setFormatter(
