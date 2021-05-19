@@ -147,6 +147,7 @@ class Main(object):
         logger.debug(
             f"char_hi={char_ind_hi}, char_lo={char_ind_lo}, line={line}"
         )
+        i = char_ind_hi
         for i in range(char_ind_hi, char_ind_lo - 1, -1):
             if not line[i].isalpha():
                 break
