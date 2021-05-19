@@ -108,7 +108,7 @@ class Main(object):
         return len(text.encode("utf-8")[:byte_ind].decode("utf-8"))
 
     def _byte_ind_by_char_ind(self, text, char_ind):
-        return len(text[:char_ind].decode("utf-8"))
+        return len(text[:char_ind].encode("utf-8"))
 
     def _get_last_input_byte_inds(self):
         """Get positions of last input start, last input end and cursor
