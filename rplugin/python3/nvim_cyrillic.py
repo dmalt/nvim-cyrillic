@@ -107,6 +107,9 @@ class Main(object):
     def _char_ind_by_byte_ind(self, text, byte_ind):
         return len(text.encode("utf-8")[:byte_ind].decode("utf-8"))
 
+    def _byte_ind_by_char_ind(self, text, char_ind):
+        return len(text[:char_ind].decode("utf-8"))
+
     def _get_last_input_byte_inds(self):
         """Get positions of last input start, last input end and cursor
 
@@ -140,11 +143,12 @@ class Main(object):
         hi = cursor[1]
         line = self.nvim.current.line
         char_ind_hi = self._char_ind_by_byte_ind(line, hi)
+        char_ind_lo = self._char_ind_by_byte_ind(line, lo)
         logger.debug(f"char_ind_hi={char_ind_hi}, hi={hi}, line={line}")
-        for i in range(char_ind_hi, lo - 1, -1):
+        for i in range(char_ind_hi, char_ind_lo - 1, -1):
             if not line[i].isalpha():
                 break
-        lo = i
+        lo = self._byte_ind_by_char_ind(line, i)
         logger.debug(
             f"'[' mark: {lo_mark}, lo: {lo}, hi: {hi}, Cursor: {cursor}"
         )
