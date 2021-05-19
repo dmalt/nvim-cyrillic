@@ -6,7 +6,9 @@ import pynvim
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 file_handler = logging.RotatingFileHandler(
-    Path(__file__).parent / "nvim_cyrillic.log", max_bytes=1e6, backupCount=1
+    Path(__file__).parent.parent / "logs" / "nvim_cyrillic.log",
+    max_bytes=1e6,
+    backupCount=1,
 )
 file_handler.setFormatter(
     logging.Formatter(
@@ -24,10 +26,25 @@ ru_en = str.maketrans(rutab, entab)
 en_ru = str.maketrans(entab, rutab)
 
 
+class NvimHandler(logging.StreamHandler):
+    def __init__(self, nvim, *pargs, **kwargs):
+        super().__init__(*pargs, **kwargs)
+        self.nvim = nvim
+
+    def emit(self, record):
+        msg = self.format(record)
+        self.nvim.command(f"echom '{msg}'")
+
+
 @pynvim.plugin
 class Main(object):
     def __init__(self, nvim):
         self.nvim = nvim
+        nvim_handler = NvimHandler(nvim)
+        nvim_handler.setFormatter(
+            logging.Formatter(fmt="%(name)s - %(levelname)s - %(message)s")
+        )
+        logger.addHandler(nvim_handler)
 
     @pynvim.function("MapLastInput", sync=True)
     def map_last_input(self, args):
