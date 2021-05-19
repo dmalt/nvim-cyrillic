@@ -1,14 +1,13 @@
 import os
 import os.path as op
 import subprocess
-from time import sleep
 from tempfile import mkdtemp
+from time import sleep
 
 import pytest
 from pynvim import attach
 
-import nvim_cyrillic as plug
-
+import python3.nvim_cyrillic as plug
 
 EN = 0
 RU = 1
@@ -71,20 +70,21 @@ def test_map_last_input(nvim, string, translation, lang):
     # check if language is switched
     assert nvim.request("nvim_get_option", "iminsert") == int(not lang)
 
-def test_map_last_input_ru_en(nvim):
-    string = "руддщ"
-    translation = "hello"
-    main = plug.Main(nvim)
-    is_ru = nvim.request("nvim_get_option", "iminsert")
-    if not is_ru:
-        nvim.command(f"set iminsert={int(not is_ru)}")
-    nvim.feedkeys(f"i{string}")
-    cursor = nvim.current.window.cursor
-    assert cursor[0] == 1
-    assert cursor[1] == len(string.encode("utf-8"))
-    main.map_last_input(args=None)
-    buf = nvim.current.buffer
-    assert len(buf) == 1
-    assert buf[0] == translation
-    # check if language is switched back to english
-    assert nvim.request("nvim_get_option", "iminsert") == 0
+
+# def test_map_visual_word_ru_en(nvim):
+#     string = "руддщ"
+#     translation = "hello"
+#     main = plug.Main(nvim)
+#     is_ru = nvim.request("nvim_get_option", "iminsert")
+#     if not is_ru:
+#         nvim.command(f"set iminsert={int(not is_ru)}")
+#     nvim.feedkeys(f"i{string}")
+#     cursor = nvim.current.window.cursor
+#     assert cursor[0] == 1
+#     assert cursor[1] == len(string.encode("utf-8"))
+#     main.map_last_input(args=None)
+#     buf = nvim.current.buffer
+#     assert len(buf) == 1
+#     assert buf[0] == translation
+#     # check if language is switched back to english
+#     assert nvim.request("nvim_get_option", "iminsert") == 0
