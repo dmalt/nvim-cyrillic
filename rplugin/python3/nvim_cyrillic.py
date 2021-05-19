@@ -43,11 +43,11 @@ class Main(object):
         lo, hi, cursor = self._get_last_input_byte_inds()
 
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
-        line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
+        line_bytes, bytes_delta = _map_bytes(line_bytes, lo, hi, is_ru)
         self._toggle_language()
         new_cur_line = line_bytes.decode()
         self._replace_line(new_cur_line)
-        self._update_cursor(cursor, cursor_delta)
+        self.nvim.current.window.cursor = [cursor[0], cursor[1] + bytes_delta]
 
     @pynvim.function("MapVisualSelection", sync=True)
     def map_visual(self, args):
@@ -56,20 +56,18 @@ class Main(object):
         lo, hi, cursor = self._get_visual_selection_byte_inds()
 
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
-        line_bytes, cursor_delta = _map_bytes(line_bytes, lo, hi, is_ru)
+        line_bytes, bytes_delta = _map_bytes(line_bytes, lo, hi, is_ru)
         new_cur_line = line_bytes.decode()
         self._replace_line(new_cur_line)
-        self._update_cursor(
-            [cursor[0], self.nvim.current.buffer.mark(">")[1]], cursor_delta
+        after_last = hi + bytes_delta
+        before_last = after_last - len(
+            new_cur_line[after_last - 1 : after_last].encode("utf-8")
         )
+        self.nvim.current.window.cursor = [cursor[0], before_last]
 
     def _replace_line(self, text):
         logger.debug(f"New line: '{text}'")
         self.nvim.current.line = text
-
-    def _update_cursor(self, cursor, cursor_delta):
-        logger.debug(f"New cursor: {cursor[0]}, {cursor[1] + cursor_delta}")
-        self.nvim.current.window.cursor = [cursor[0], cursor[1] + cursor_delta]
 
     def _get_visual_selection_byte_inds(self):
         lo = self.nvim.current.buffer.mark("<")[1]
@@ -115,6 +113,10 @@ def _map_bytes(text_bytes, lo, hi, is_ru):
     text_crop = text_bytes[lo:hi].decode("utf-8")
     crop_translate_bytes = _map_text(text_crop, is_ru).encode()
     delta = len(crop_translate_bytes) - (hi - lo)
+    logger.debug(
+        f"Cursor delta:{delta}, new message len: {len(crop_translate_bytes)},"
+        f" hi: {hi}, lo: {lo}"
+    )
     return text_bytes[:lo] + crop_translate_bytes + text_bytes[hi:], delta
 
 
