@@ -8,7 +8,8 @@ logger.setLevel(logging.DEBUG)
 file_handler = logging.FileHandler(Path(__file__).parent / "nvim_cyrillic.log")
 file_handler.setFormatter(
     logging.Formatter(
-        fmt="%(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p"
+        fmt="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%m/%d/%Y %I:%M:%S %p",
     )
 )
 logger.addHandler(file_handler)
@@ -32,7 +33,7 @@ class Main(object):
         # which matters for unicode characters which are encoded by more than
         # one byte per char
         logger.debug("Entering map_last_input")
-        logger.debug(f"Current line: {self.nvim.current.line}")
+        logger.debug(f"Current line: '{self.nvim.current.line}'")
         line_bytes = self.nvim.current.line.encode("utf-8")
         lo, hi, cursor = self._get_last_input_byte_inds()
 
@@ -45,7 +46,7 @@ class Main(object):
 
     @pynvim.function("MapVisualSelection", sync=True)
     def map_visual(self, args):
-        logger.debug(f"Current line: {self.nvim.current.line}")
+        logger.debug(f"Current line: '{self.nvim.current.line}'")
         line_bytes = self.nvim.current.line.encode("utf-8")
         lo, hi, cursor = self._get_visual_selection_byte_inds()
 
@@ -58,7 +59,7 @@ class Main(object):
         )
 
     def _replace_line(self, text):
-        logger.debug(f"New line: {text}")
+        logger.debug(f"New line: '{text}'")
         self.nvim.current.line = text
 
     def _update_cursor(self, cursor, cursor_delta):
