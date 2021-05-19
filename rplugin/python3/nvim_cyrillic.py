@@ -49,6 +49,23 @@ class Main(object):
         self._replace_line(new_cur_line)
         self.nvim.current.window.cursor = [cursor[0], cursor[1] + bytes_delta]
 
+    @pynvim.function("MapLastInputWord", sync=True)
+    def map_last_input_word(self, args):
+        # Cursor and mark positions are returned by API as bytes offsets
+        # which matters for unicode characters which are encoded by more than
+        # one byte per char
+        logger.debug("Entering map_last_input")
+        logger.debug(f"Current line: '{self.nvim.current.line}'")
+        line_bytes = self.nvim.current.line.encode("utf-8")
+        lo, hi, cursor = self._get_last_input_word_byte_inds()
+
+        is_ru = self.nvim.request("nvim_get_option", "iminsert")
+        line_bytes, bytes_delta = _map_bytes(line_bytes, lo, hi, is_ru)
+        self._toggle_language()
+        new_cur_line = line_bytes.decode()
+        self._replace_line(new_cur_line)
+        self.nvim.current.window.cursor = [cursor[0], cursor[1] + bytes_delta]
+
     @pynvim.function("MapVisualSelection", sync=True)
     def map_visual(self, args):
         logger.debug(f"Current line: '{self.nvim.current.line}'")
@@ -87,6 +104,9 @@ class Main(object):
         logger.debug(f"hi_offset: {hi_offset}")
         return lo, hi + hi_offset, cursor
 
+    def _char_ind_by_byte_ind(self, text, byte_ind):
+        return len(text.encode("utf-8")[:byte_ind].decode("utf-8"))
+
     def _get_last_input_byte_inds(self):
         """Get positions of last input start, last input end and cursor
 
@@ -100,6 +120,30 @@ class Main(object):
         else:
             lo = lo_mark[1]
         hi = cursor[1]
+        logger.debug(
+            f"'[' mark: {lo_mark}, lo: {lo}, hi: {hi}, Cursor: {cursor}"
+        )
+        return lo, hi, cursor
+
+    def _get_last_input_word_byte_inds(self):
+        """Get positions of last input start, last input end and cursor
+
+        Positions are specified for byte strings. Neovim stores them like that.
+        """
+        lo_mark = self.nvim.current.buffer.mark("[")
+        cursor = self.nvim.current.window.cursor
+        if cursor[0] != lo_mark[0]:
+            # handle linebreaks during input
+            lo = 0
+        else:
+            lo = lo_mark[1]
+        hi = cursor[1]
+        line = self.nvim.current.line
+        char_ind_hi = self._char_ind_by_byte_ind(line, hi)
+        for i in range(char_ind_hi, lo - 1, -1):
+            if not line[i].isalpha():
+                break
+        lo = i
         logger.debug(
             f"'[' mark: {lo_mark}, lo: {lo}, hi: {hi}, Cursor: {cursor}"
         )

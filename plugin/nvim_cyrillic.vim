@@ -5,7 +5,7 @@ set imsearch=0
 highlight lCursor guifg=None guibg=Cyan
 " ------------------------------------- "
 
-inoremap <c-k> <c-\><c-o>:call MapLastInput()<CR>
+inoremap <c-k> <c-\><c-o>:call MapLastInputWord()<CR>
 vnoremap <c-k> :<c-u>call MapVisualSelection()<CR>
 
 " inoremap <c-u> <Esc>ua
