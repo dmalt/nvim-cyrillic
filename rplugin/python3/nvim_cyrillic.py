@@ -43,7 +43,7 @@ class Main(object):
         self.nvim = nvim
         nvim_handler = NvimHandler(nvim)
         nvim_handler.setFormatter(
-            logging.Formatter(fmt="%(name)s - %(levelname)s - %(message)s")
+            logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
         )
         logger.addHandler(nvim_handler)
 
