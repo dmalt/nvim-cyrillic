@@ -61,8 +61,9 @@ class Main(object):
         self._replace_line(new_cur_line)
         after_last = hi + bytes_delta
         before_last = after_last - len(
-            new_cur_line[after_last - 1 : after_last].encode("utf-8")
+            line_bytes[:after_last].decode("utf-8")[-1].encode("utf-8")
         )
+        logger.debug(f"Before last: {before_last}, after last: {after_last}")
         self.nvim.current.window.cursor = [cursor[0], before_last]
 
     def _replace_line(self, text):
@@ -114,7 +115,7 @@ def _map_bytes(text_bytes, lo, hi, is_ru):
     crop_translate_bytes = _map_text(text_crop, is_ru).encode()
     delta = len(crop_translate_bytes) - (hi - lo)
     logger.debug(
-        f"Cursor delta:{delta}, new message len: {len(crop_translate_bytes)},"
+        f"Bytes delta:{delta}, new message len: {len(crop_translate_bytes)},"
         f" hi: {hi}, lo: {lo}"
     )
     return text_bytes[:lo] + crop_translate_bytes + text_bytes[hi:], delta
