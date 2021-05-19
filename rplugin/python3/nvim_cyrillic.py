@@ -1,11 +1,13 @@
 import logging
-import os.path as op
+from pathlib import Path
 
 import pynvim
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler(op.join(__file__, "nvim_cyrillic.log")))
+logger.addHandler(
+    logging.FileHandler(Path(__file__).parent / "nvim_cyrillic.log")
+)
 
 
 rutab = """ЁёАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"№;:?.,"""  # noqa
