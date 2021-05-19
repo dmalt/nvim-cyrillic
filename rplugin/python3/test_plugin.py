@@ -10,6 +10,10 @@ from pynvim import attach
 import nvim_cyrillic as plug
 
 
+EN = 0
+RU = 1
+
+
 @pytest.fixture
 def nvim():
 
@@ -28,6 +32,8 @@ def nvim():
     else:
         raise FileNotFoundError
     nvim = attach("socket", path=os.environ["NVIM_LISTEN_ADDRESS"])
+    nvim.command("set keymap=russian-jcukenwin")
+    nvim.command("set iminsert=0")
     yield nvim
     nvim.feedkeys(nvim.replace_termcodes("<ESC>:q!<CR>"))
     p.terminate()
@@ -35,23 +41,35 @@ def nvim():
         os.remove(socket)
 
 
-def test_map_last_input_en_ru(nvim):
-    string = "hello"
-    translation = "руддщ"
+@pytest.mark.parametrize(
+    "string,translation,lang",
+    [
+        ("", "", RU),
+        ("", "", EN),
+        ("hello", "руддщ", EN),
+        ("руддщ", "hello", RU),
+        ("Мама мыла раму", "Vfvf vskf hfve", RU),
+        ("№", "#", RU),
+        ("  №", "  #", RU),
+        ("  №", "  №", EN),
+    ],
+)
+def test_map_last_input(nvim, string, translation, lang):
     # check if current language is english
-    assert nvim.request("nvim_get_option", "iminsert") == 0
+    nvim.command(f"set iminsert={lang}")
     nvim.feedkeys(f"i{string}")
+
     cursor = nvim.current.window.cursor
     assert cursor[0] == 1
     assert cursor[1] == len(string.encode("utf-8"))
+
     main = plug.Main(nvim)
     main.map_last_input(args=None)
-    buf = nvim.current.buffer
-    assert len(buf) == 1
-    assert buf[0] == translation
-    # check if language is switched to russian
-    assert nvim.request("nvim_get_option", "iminsert") == 1
 
+    assert len(nvim.current.buffer) == 1
+    assert nvim.current.buffer[0] == translation
+    # check if language is switched
+    assert nvim.request("nvim_get_option", "iminsert") == int(not lang)
 
 def test_map_last_input_ru_en(nvim):
     string = "руддщ"
