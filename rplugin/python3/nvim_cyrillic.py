@@ -142,9 +142,11 @@ class Main(object):
             lo = lo_mark[1]
         hi = cursor[1]
         line = self.nvim.current.line
-        char_ind_hi = self._char_ind_by_byte_ind(line, hi)
+        char_ind_hi = self._char_ind_by_byte_ind(line, hi - 1)
         char_ind_lo = self._char_ind_by_byte_ind(line, lo)
-        logger.debug(f"char_ind_hi={char_ind_hi}, hi={hi}, line={line}")
+        logger.debug(
+            f"char_hi={char_ind_hi}, char_lo={char_ind_lo}, line={line}"
+        )
         for i in range(char_ind_hi, char_ind_lo - 1, -1):
             if not line[i].isalpha():
                 break
