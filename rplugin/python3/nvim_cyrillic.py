@@ -27,25 +27,10 @@ ru_en = str.maketrans(rutab, entab)
 en_ru = str.maketrans(entab, rutab)
 
 
-class NvimHandler(logging.StreamHandler):
-    def __init__(self, nvim, *pargs, **kwargs):
-        super().__init__(*pargs, **kwargs)
-        self.nvim = nvim
-
-    def emit(self, record):
-        msg = self.format(record)
-        self.nvim.command(f'''echom "{msg}"''')
-
-
 @pynvim.plugin
 class Main(object):
     def __init__(self, nvim):
         self.nvim = nvim
-        nvim_handler = NvimHandler(nvim)
-        nvim_handler.setFormatter(
-            logging.Formatter(fmt="%(name)s: %(levelname)s: %(message)s")
-        )
-        logger.addHandler(nvim_handler)
 
     @pynvim.function("MapLastInput", sync=True)
     def map_last_input(self, args):
