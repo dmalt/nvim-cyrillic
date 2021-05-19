@@ -3,7 +3,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler("nvim-cyrillic.log"))
+logger.addHandler(logging.FileHandler("nvim_cyrillic.log"))
 
 
 rutab = """ЁёАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзийклмнопрстуфхцчшщъыьэюя"№;:?.,"""  # noqa
@@ -24,6 +24,8 @@ class Main(object):
         # Cursor and mark positions are returned by API as bytes offsets
         # which matters for unicode characters which are encoded by more than
         # one byte per char
+        logger.debug("Entering map_last_input")
+        logger.debug(f"Current line: {self.nvim.current.line}")
         line_bytes = self.nvim.current.line.encode("utf-8")
         lo, hi, cursor = self._get_last_input_byte_inds()
 
@@ -60,7 +62,7 @@ class Main(object):
         lo = self.nvim.current.buffer.mark("<")[1]
         hi = self.nvim.current.buffer.mark(">")[1]
         cursor = self.nvim.current.window.cursor
-        logger.debug(f"Low: {lo}, High: {hi}, Cursor: {cursor}")
+        logger.debug(f"'<' mark: {lo}, '>' mark: {hi}, Cursor: {cursor}")
         line_bytes = self.nvim.current.line.encode("utf-8")
         # hi mark is set on the last character in visual selection, i.e.
         # the last character will not be included in slice. Therefore we need
@@ -78,15 +80,18 @@ class Main(object):
 
         Positions are specified for byte strings. Neovim stores them like that.
         """
-        start_ins_pos = self.nvim.current.buffer.mark("[")
+        lo_mark = self.nvim.current.buffer.mark("[")
         cursor = self.nvim.current.window.cursor
-        if cursor[0] != start_ins_pos[0]:
+        if cursor[0] != lo_mark[0]:
             # handle linebreaks during input
-            start_ins_col = 0
+            lo = 0
         else:
-            start_ins_col = start_ins_pos[1]
-        end_ins_col = cursor[1]
-        return start_ins_col, end_ins_col, cursor
+            lo = lo_mark[1]
+        hi = cursor[1]
+        logger.debug(
+            f"'[' mark: {lo_mark}, lo: {lo}, hi: {hi}, Cursor: {cursor}"
+        )
+        return lo, hi, cursor
 
     def _toggle_language(self):
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
