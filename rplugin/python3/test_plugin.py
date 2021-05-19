@@ -35,7 +35,7 @@ def nvim():
         os.remove(socket)
 
 
-def test_map_last_input_single_word_en_ru(nvim):
+def test_map_last_input_en_ru(nvim):
     string = "hello"
     translation = "руддщ"
     # check if current language is english
@@ -53,7 +53,7 @@ def test_map_last_input_single_word_en_ru(nvim):
     assert nvim.request("nvim_get_option", "iminsert") == 1
 
 
-def test_map_last_input_single_word_ru_en(nvim):
+def test_map_last_input_ru_en(nvim):
     string = "руддщ"
     translation = "hello"
     main = plug.Main(nvim)
