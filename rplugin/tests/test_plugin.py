@@ -120,3 +120,23 @@ def test_map_visual_middle_of_word(nvim, string, transl, lang, move, targ):
 
     assert nvim.current.window.cursor[0] == 1
     assert nvim.current.window.cursor[1] == len(transl[:targ].encode("utf-8"))
+
+
+@pytest.mark.parametrize(
+    "string,transl,lang",
+    [
+        ("Мама мыла раму \\куа", "Мама мыла раму \\ref", RU),
+    ],
+)
+def test_map_last_input_word(nvim, string, transl, lang):
+    main = plug.Main(nvim)
+    nvim.command(f"set iminsert={lang}")
+    nvim.feedkeys(f"i{string}")
+
+    main.map_last_input_word(args=None)
+    buf = nvim.current.buffer
+    assert len(buf) == 1
+    assert buf[0] == transl
+
+    assert nvim.current.window.cursor[0] == 1
+    assert nvim.current.window.cursor[1] == len(transl.encode("utf-8"))
