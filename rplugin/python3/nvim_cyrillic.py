@@ -27,6 +27,10 @@ ru_en = str.maketrans(rutab, entab)
 en_ru = str.maketrans(entab, rutab)
 
 
+class MarksCrossException(Exception):
+    pass
+
+
 @pynvim.plugin
 class Main(object):
     def __init__(self, nvim):
@@ -57,8 +61,11 @@ class Main(object):
         logger.debug("Entering map_last_input")
         logger.debug(f"Current line: '{self.nvim.current.line}'")
         line_bytes = self.nvim.current.line.encode("utf-8")
-        lo, hi, cursor = self._get_last_input_word_byte_inds()
-
+        try:
+            lo, hi, cursor = self._get_last_input_word_byte_inds()
+        except MarksCrossException as e:
+            logger.warning(f"Cannot perform mapping: {e}")
+            return
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
         line_bytes, bytes_delta = _map_bytes(line_bytes, lo, hi, is_ru)
         self._toggle_language()
@@ -83,7 +90,7 @@ class Main(object):
         logger.debug(f"Before last: {before_last}, after last: {after_last}")
         self.nvim.current.window.cursor = [cursor[0], before_last]
 
-    @pynvim.autocmd('CursorMovedI', sync=False)
+    @pynvim.autocmd("CursorMovedI", sync=False)
     def on_textchanged(self):
         logger.debug(f"cursor position is:{self.nvim.current.window.cursor}")
         logger.debug(f"[ position is:{self.nvim.current.buffer.mark('[')}")
@@ -147,7 +154,10 @@ class Main(object):
         logger.debug(
             f"char_hi={char_ind_hi}, char_lo={char_ind_lo}, line={line}"
         )
-        i = char_ind_hi
+        if char_ind_lo > char_ind_hi:
+            raise MarksCrossException(
+                f"[, ] marks cross: [ = {char_ind_lo}, ] = {char_ind_hi}"
+            )
         for i in range(char_ind_hi, char_ind_lo - 1, -1):
             if not line[i].isalpha():
                 break
