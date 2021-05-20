@@ -125,14 +125,12 @@ def test_map_visual_middle_of_word(nvim, string, transl, lang, move, targ):
 @pytest.mark.parametrize(
     "string,transl,lang,move,targ",
     [
-        ("Научный текст \\куа", "Научный текст \\ref", RU, "<c-\\><c-o>", 18),
+        ("Научный текст \\куа", "Научный текст \\ref", RU, "", 18),
         ("Мама мыла раму \\куа", "Мама мыла раму \\reа", RU, "<Left>", 18),
-        ("Quick brown pfqxbr", "Quick brown зайчик", EN, "<c-\\><c-o>", 18),
+        ("Quick brown pfqxbr", "Quick brown зайчик", EN, "", 18),
         ("Quick cbybq bunny", "Quick синий bunny", EN, "<C-Left><Left>", 11,),
-        # test that one letter before cursor doesnt change when just entered
-        # insert mode in the middle of some word
-        ("Something", "Something", EN, "<esc>0lla<c-\\><c-o>", 3,),
-        ("Smth", "elseSmth", EN, "<esc>Ielse<Right><Right><c-\\><c-o>", 6,),
+        ("Something", "Something", EN, "<esc>0lla", 3,),
+        ("Smth", "elseSmth", EN, "<esc>Ielse<Right><Right>", 6,),
     ],
 )
 def test_map_last_input_word(nvim, string, transl, lang, move, targ):
@@ -141,6 +139,7 @@ def test_map_last_input_word(nvim, string, transl, lang, move, targ):
     nvim.feedkeys(f"i{string}", options="t")
     nvim.feedkeys(nvim.replace_termcodes(move), options="t")
 
+    nvim.feedkeys(nvim.replace_termcodes("<c-\\><c-o>"))
     main.map_last_input_word(args=None)
     buf = nvim.current.buffer
     assert len(buf) == 1
