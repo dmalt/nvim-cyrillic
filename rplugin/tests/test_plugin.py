@@ -15,7 +15,6 @@ RU = 1
 
 @pytest.fixture
 def nvim():
-
     tempdir = mkdtemp()
     socket = op.join(tempdir, "nvim")
     os.environ["NVIM_LISTEN_ADDRESS"] = socket
@@ -41,7 +40,7 @@ def nvim():
 
 
 @pytest.mark.parametrize(
-    "string,translation,lang",
+    "string,transl,lang",
     [
         ("", "", RU),
         ("", "", EN),
@@ -53,7 +52,7 @@ def nvim():
         ("  №", "  №", EN),
     ],
 )
-def test_map_last_input(nvim, string, translation, lang):
+def test_map_last_input(nvim, string, transl, lang):
     # check if current language is english
     nvim.command(f"set iminsert={lang}")
     nvim.feedkeys(f"i{string}")
@@ -65,23 +64,23 @@ def test_map_last_input(nvim, string, translation, lang):
     main.map_last_input(args=None)
 
     assert len(nvim.current.buffer) == 1
-    assert nvim.current.buffer[0] == translation
+    assert nvim.current.buffer[0] == transl
     # check if language is switched
     assert nvim.request("nvim_get_option", "iminsert") == int(not lang)
 
     assert nvim.current.window.cursor[0] == 1
-    assert nvim.current.window.cursor[1] == len(translation.encode("utf-8"))
+    assert nvim.current.window.cursor[1] == len(transl.encode("utf-8"))
 
 
 @pytest.mark.parametrize(
-    "string,translation,lang",
+    "string,transl,lang",
     [
         ("hello", "руддщ", EN),
         ("руддщ", "hello", RU),
         ("руддщ руддщ", "руддщ hello", RU),
     ],
 )
-def test_map_visual_word_ru_en(nvim, string, translation, lang):
+def test_map_visual_word_ru_en(nvim, string, transl, lang):
     main = plug.Main(nvim)
     nvim.command(f"set iminsert={lang}")
     nvim.feedkeys(f"i{string}")
@@ -94,34 +93,32 @@ def test_map_visual_word_ru_en(nvim, string, translation, lang):
     main.map_visual(args=None)
     buf = nvim.current.buffer
     assert len(buf) == 1
-    assert buf[0] == translation
+    assert buf[0] == transl
 
     assert nvim.current.window.cursor[0] == 1
     assert nvim.current.window.cursor[1] == len(
-        translation[:-1].encode("utf-8")
+        transl[:-1].encode("utf-8")
     )
 
 
 @pytest.mark.parametrize(
-    "string,translation,lang",
+    "string,transl,lang,move, targ",
     [
-        ("hellopal", "heддщpal", EN),
-        ("руддщзфд", "руlloзфд", RU),
+        ("hellopal", "heддщpal", EN, "02lv2l<esc>", 4),
+        ("руддщзфд", "руlloзфд", RU, "02lv2l<esc>", 4),
     ],
 )
-def test_map_visual_middle_of_word(nvim, string, translation, lang):
+def test_map_visual_middle_of_word(nvim, string, transl, lang, move, targ):
     main = plug.Main(nvim)
     nvim.command(f"set iminsert={lang}")
     nvim.feedkeys(f"i{string}")
     nvim.feedkeys(nvim.replace_termcodes("<esc>"))
 
-    nvim.feedkeys(nvim.replace_termcodes("02lv2l<esc>"))
+    nvim.feedkeys(nvim.replace_termcodes(move))
     main.map_visual(args=None)
     buf = nvim.current.buffer
     assert len(buf) == 1
-    assert buf[0] == translation
+    assert buf[0] == transl
 
     assert nvim.current.window.cursor[0] == 1
-    assert nvim.current.window.cursor[1] == len(
-        translation[:4].encode("utf-8")
-    )
+    assert nvim.current.window.cursor[1] == len(transl[:targ].encode("utf-8"))
