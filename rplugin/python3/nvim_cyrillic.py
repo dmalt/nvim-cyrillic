@@ -4,6 +4,15 @@ from pathlib import Path
 
 import pynvim
 
+# TODO
+# 1) Refactor insert-mode mapping so they delete characters manually
+#    with feedkeys("<BS>") and then reinsert them also with feedkeys.
+#    This way I won't have to worry about the cursor position and last input
+#    marks which are being distorted when the character encoding length changes
+# 2) Refactor visual-mode mapping
+# 3) Take care of multiline modes, doing nothing when the user tries to invoke
+#    mapping in those modes.
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 file_handler = RotatingFileHandler(
