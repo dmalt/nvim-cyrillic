@@ -83,6 +83,12 @@ class Main(object):
         logger.debug(f"Before last: {before_last}, after last: {after_last}")
         self.nvim.current.window.cursor = [cursor[0], before_last]
 
+    @pynvim.autocmd('CursorMovedI', sync=False)
+    def on_textchanged(self):
+        logger.debug(f"cursor position is:{self.nvim.current.window.cursor}")
+        logger.debug(f"[ position is:{self.nvim.current.buffer.mark('[')}")
+        logger.debug(f"] position is:{self.nvim.current.buffer.mark(']')}")
+
     def _replace_line(self, text):
         logger.debug(f"New line: '{text}'")
         self.nvim.current.line = text
