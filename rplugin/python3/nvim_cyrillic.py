@@ -27,7 +27,7 @@ ru_en = str.maketrans(rutab, entab)
 en_ru = str.maketrans(entab, rutab)
 
 
-class MarksCrossException(Exception):
+class InputLimitsError(Exception):
     pass
 
 
@@ -63,7 +63,7 @@ class Main(object):
         line_bytes = self.nvim.current.line.encode("utf-8")
         try:
             lo, hi, cursor = self._get_last_input_word_byte_inds()
-        except MarksCrossException as e:
+        except InputLimitsError as e:
             logger.warning(f"Cannot perform mapping: {e}")
             return
         is_ru = self.nvim.request("nvim_get_option", "iminsert")
@@ -155,7 +155,7 @@ class Main(object):
             f"char_hi={char_ind_hi}, char_lo={char_ind_lo}, line={line}"
         )
         if char_ind_lo > char_ind_hi:
-            raise MarksCrossException(
+            raise InputLimitsError(
                 f"[, ] marks cross: [ = {char_ind_lo}, ] = {char_ind_hi}"
             )
         for i in range(char_ind_hi, char_ind_lo - 1, -1):
