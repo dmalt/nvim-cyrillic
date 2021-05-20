@@ -96,9 +96,7 @@ def test_map_visual_word_ru_en(nvim, string, transl, lang):
     assert buf[0] == transl
 
     assert nvim.current.window.cursor[0] == 1
-    assert nvim.current.window.cursor[1] == len(
-        transl[:-1].encode("utf-8")
-    )
+    assert nvim.current.window.cursor[1] == len(transl[:-1].encode("utf-8"))
 
 
 @pytest.mark.parametrize(
