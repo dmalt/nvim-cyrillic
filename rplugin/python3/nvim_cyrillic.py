@@ -148,7 +148,13 @@ class Main(object):
             lo = 0
         else:
             lo = lo_mark[1]
-        hi = cursor[1]
+        if lo_mark[1] < cursor[1] <= hi_mark[1]:
+            hi = cursor[1]
+        else:
+            raise InputLimitsError(
+                "Cursor must be between input marks:"
+                f" cursor={cursor}, [={lo_mark}, ]={hi_mark}"
+            )
         line = self.nvim.current.line
         char_ind_hi = _char_ind_by_byte_ind(line, hi) - 1
         char_ind_lo = _char_ind_by_byte_ind(line, lo)
