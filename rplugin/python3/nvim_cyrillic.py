@@ -58,7 +58,7 @@ class Main(object):
         # Cursor and mark positions are returned by API as bytes offsets
         # which matters for unicode characters which are encoded by more than
         # one byte per char
-        logger.debug("Entering map_last_input")
+        logger.debug("Entering map_last_input_word")
         logger.debug(f"Current line: '{self.nvim.current.line}'")
         line_bytes = self.nvim.current.line.encode("utf-8")
         try:
@@ -141,6 +141,7 @@ class Main(object):
         Positions are specified for byte strings. Neovim stores them like that.
         """
         lo_mark = self.nvim.current.buffer.mark("[")
+        hi_mark = self.nvim.current.buffer.mark("]")
         cursor = self.nvim.current.window.cursor
         if cursor[0] != lo_mark[0]:
             # handle linebreaks during input
@@ -163,7 +164,7 @@ class Main(object):
                 break
         lo = _byte_ind_by_char_ind(line, i)
         logger.debug(
-            f"'[' mark: {lo_mark}, lo: {lo}, hi: {hi}, Cursor: {cursor}"
+            f"'[' mark: {lo_mark},']' mark: {hi_mark}, lo: {lo}, hi: {hi}, Cursor: {cursor}"
         )
         return lo, hi, cursor
 
