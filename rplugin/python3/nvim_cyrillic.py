@@ -104,12 +104,6 @@ class Main(object):
         logger.debug(f"hi_offset: {hi_offset}")
         return lo, hi + hi_offset, cursor
 
-    def _char_ind_by_byte_ind(self, text, byte_ind):
-        return len(text.encode("utf-8")[:byte_ind].decode("utf-8"))
-
-    def _byte_ind_by_char_ind(self, text, char_ind):
-        return len(text[:char_ind].encode("utf-8"))
-
     def _get_last_input_byte_inds(self):
         """Get positions of last input start, last input end and cursor
 
@@ -142,8 +136,8 @@ class Main(object):
             lo = lo_mark[1]
         hi = cursor[1]
         line = self.nvim.current.line
-        char_ind_hi = self._char_ind_by_byte_ind(line, hi) - 1
-        char_ind_lo = self._char_ind_by_byte_ind(line, lo)
+        char_ind_hi = _char_ind_by_byte_ind(line, hi) - 1
+        char_ind_lo = _char_ind_by_byte_ind(line, lo)
         logger.debug(
             f"char_hi={char_ind_hi}, char_lo={char_ind_lo}, line={line}"
         )
@@ -151,7 +145,7 @@ class Main(object):
         for i in range(char_ind_hi, char_ind_lo - 1, -1):
             if not line[i].isalpha():
                 break
-        lo = self._byte_ind_by_char_ind(line, i)
+        lo = _byte_ind_by_char_ind(line, i)
         logger.debug(
             f"'[' mark: {lo_mark}, lo: {lo}, hi: {hi}, Cursor: {cursor}"
         )
@@ -180,6 +174,14 @@ def _map_text(text, is_ru):
     else:
         text_translate = text.translate(en_ru)
     return text_translate
+
+
+def _char_ind_by_byte_ind(text, byte_ind):
+    return len(text.encode("utf-8")[:byte_ind].decode("utf-8"))
+
+
+def _byte_ind_by_char_ind(text, char_ind):
+    return len(text[:char_ind].encode("utf-8"))
 
 
 if __name__ == "__main__":
