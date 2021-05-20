@@ -147,3 +147,24 @@ def test_map_last_input_word(nvim, string, transl, lang, move, targ):
 
     assert nvim.current.window.cursor[0] == 1
     assert nvim.current.window.cursor[1] == len(transl[:targ].encode("utf-8"))
+
+
+@pytest.mark.parametrize(
+    "string,transl, lang", [("Something", "Ыщьуерштп", EN)]
+)
+def test_map_last_input_word_triggered_twice(nvim, string, transl, lang):
+    main = plug.Main(nvim)
+    nvim.command(f"set iminsert={lang}")
+    nvim.feedkeys(f"i{string}", options="t")
+    nvim.feedkeys(nvim.replace_termcodes("<c-\\><c-o>"))
+
+    main.map_last_input_word(args=None)
+    assert len(nvim.current.buffer) == 1
+    assert nvim.current.buffer[0] == transl
+    main.map_last_input_word(args=None)
+
+    assert len(nvim.current.buffer) == 1
+    assert nvim.current.buffer[0] == string
+
+    assert nvim.current.window.cursor[0] == 1
+    assert nvim.current.window.cursor[1] == len(string.encode("utf-8"))
