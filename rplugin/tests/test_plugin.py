@@ -65,7 +65,7 @@ def nvim(rplugin_manifest):
 
 
 @pytest.mark.parametrize(
-    "string,transl,lang",
+    "string, transl, lang",
     [
         ("", "", RU),
         ("", "", EN),
@@ -100,7 +100,7 @@ def test_map_last_input(nvim, string, transl, lang):
 
 
 @pytest.mark.parametrize(
-    "string,transl,lang",
+    "string, transl, lang",
     [
         ("hello", "руддщ", EN),
         ("руддщ", "hello", RU),
@@ -128,7 +128,7 @@ def test_map_visual_word_ru_en(nvim, string, transl, lang):
 
 
 @pytest.mark.parametrize(
-    "string,transl,lang,move, targ",
+    "string, transl, lang, move, targ",
     [
         ("hellopal", "heддщpal", EN, "02lv2l<esc>", 4),
         ("руддщзфд", "руlloзфд", RU, "02lv2l<esc>", 4),
@@ -150,7 +150,7 @@ def test_map_visual_middle_of_word(nvim, string, transl, lang, move, targ):
 
 
 @pytest.mark.parametrize(
-    "string,transl,lang,move,targ",
+    "string, transl, lang, move, targ",
     [
         ("Научный текст \\куа", "Научный текст \\ref", RU, "", 18),
         ("Мама мыла раму \\куа", "Мама мыла раму \\reа", RU, "<Left>", 18),
@@ -195,7 +195,7 @@ def test_map_last_input_word(nvim, string, transl, lang, move, targ):
 
 
 @pytest.mark.parametrize(
-    "string,transl, lang", [("Something", "Ыщьуерштп", EN)]
+    "string, transl, lang", [("Something", "Ыщьуерштп", EN)]
 )
 def test_map_last_input_word_triggered_twice(nvim, string, transl, lang):
     nvim.command(f"set iminsert={lang}")
