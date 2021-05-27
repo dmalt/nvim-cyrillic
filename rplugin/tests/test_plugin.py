@@ -220,6 +220,7 @@ def test_map_ins_mode_move_to_another_line(nvim):
     nvim.feedkeys("i")
     string1 = "foo"
     string2 = "bar"
+    string2_transl = "ифк"
     for c in string1:
         nvim.feedkeys(c)
     nvim.feedkeys(nvim.replace_termcodes("<CR>"))
@@ -232,3 +233,26 @@ def test_map_ins_mode_move_to_another_line(nvim):
 
     assert nvim.current.buffer[0] == string1
     assert nvim.current.buffer[1] == string2
+
+    nvim.feedkeys(nvim.replace_termcodes("<Down>"))
+    assert nvim.current.window.cursor == [2, 3]
+    nvim.command(f"set iminsert={EN}")
+    nvim.command("call MapLastInputWord()")
+    assert nvim.current.buffer[0] == string1
+    assert nvim.current.buffer[1] == string2_transl
+
+
+def test_move_within_last_insert(nvim):
+    nvim.command(f"set iminsert={EN}")
+    string = "foobar"
+    nvim.feedkeys("i")
+    for c in string:
+        nvim.feedkeys(c)
+    nvim.feedkeys(nvim.replace_termcodes("<Left>" * 3))
+    nvim.command("call MapLastInputWord()")
+    assert nvim.current.line == "ащщbar"
+    nvim.command("call MapLastInputWord()")
+    assert nvim.current.line == "foobar"
+    nvim.feedkeys(nvim.replace_termcodes("<Right>"))
+    nvim.command("call MapLastInputWord()")
+    assert nvim.current.line == "ащщиar"
