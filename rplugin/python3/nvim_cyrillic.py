@@ -29,7 +29,7 @@ EN_RU = str.maketrans(ENTAB, RUTAB)
 class Main(object):
     def __init__(self, nvim):
         self.nvim = NvimWrapper(nvim)
-        self.input_start = self.input_end = None
+        self.input_start = self.input_end = self.ins_row = None
         self.prev_limits = []
 
     @pynvim.function("MapLastInput", sync=True)
@@ -42,6 +42,7 @@ class Main(object):
 
     @pynvim.autocmd("InsertEnter", sync=True)
     def on_insert_enter(self):
+        self.ins_row = self.nvim.get_cursor()[0]
         if self.prev_limits:
             self.input_start, self.input_end = self.prev_limits.pop()
         else:
@@ -49,7 +50,7 @@ class Main(object):
 
     @pynvim.autocmd("TextChangedI", sync=True)
     def on_text_changed_i(self):
-        cursor_col = self.nvim.get_cursor()[1]
+        self.ins_row, cursor_col = self.nvim.get_cursor()
         if cursor_col > self.input_end + 1 or cursor_col <= self.input_start:
             self.input_start = cursor_col
         self.input_end = cursor_col
@@ -63,7 +64,8 @@ class Main(object):
         self.nvim.feedkeys("<esc>", replace_termcodes=True)
 
     def map_insert(self, nchars_getter):
-        if self.input_start < self.nvim.get_cursor()[1] <= self.input_end:
+        row, col = self.nvim.get_cursor()
+        if self.input_start < col <= self.input_end and self.ins_row == row:
             self.prev_limits.append([self.input_start, self.input_end])
             self.nvim.map_nchars_back(nchars_getter())
         self.nvim.toggle_language()
