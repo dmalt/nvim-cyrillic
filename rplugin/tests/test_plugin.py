@@ -1,6 +1,7 @@
 import os
 import os.path as op
 import subprocess
+from contextlib import contextmanager
 from pathlib import Path
 from tempfile import mkdtemp, mkstemp
 from time import sleep
@@ -13,73 +14,56 @@ import python3.nvim_cyrillic as plug
 EN = 0
 RU = 1
 PACK_DIR = Path(__file__).parent.parent.parent.parent.parent.parent.parent
+NVIM_CMD = [
+    "nvim", "--headless", "-u", "NORC", "--cmd", f"set packpath+={PACK_DIR}"
+]
 
 
-def update_manifest():
+def update_rplugin_manifest():
+    temp_rplugin = mkstemp(suffix=".vim", prefix="rplugin", text=True)
+    os.environ["NVIM_RPLUGIN_MANIFEST"] = temp_rplugin[1]
+    with spawn_nvim() as nvim:
+        nvim.command("UpdateRemotePlugins")
+    return temp_rplugin
+
+
+@contextmanager
+def spawn_nvim(timeout=1000):
     tempdir = mkdtemp()
     socket = op.join(tempdir, "nvim")
     os.environ["NVIM_LISTEN_ADDRESS"] = socket
-    temp_rplugin = mkstemp(suffix=".vim", prefix="rplugin", text=True)
-    os.environ["NVIM_RPLUGIN_MANIFEST"] = temp_rplugin[1]
-    subprocess.Popen(
-        [
-            "nvim",
-            "--headless",
-            "-u",
-            "NORC",
-            "--cmd",
-            f"set packpath+={PACK_DIR}",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+    process = subprocess.Popen(
+        NVIM_CMD, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
-    for _ in range(50):
+    for _ in range(timeout):
         if op.exists(socket):
             break
-        sleep(0.1)
+        sleep(0.001)
     else:
-        raise FileNotFoundError
+        raise FileNotFoundError(f"No socket file at {socket}")
     nvim = attach("socket", path=os.environ["NVIM_LISTEN_ADDRESS"])
-    nvim.command("UpdateRemotePlugins")
-    nvim.quit()
-    if op.exists(socket):
-        os.remove(socket)
+    try:
+        yield nvim
+    finally:
+        nvim.quit()
+        process.terminate()
+        if op.exists(socket):
+            os.remove(socket)
 
 
-update_manifest()
+@pytest.fixture(scope="module")
+def rplugin_manifest():
+    temp_rplugin = update_rplugin_manifest()
+    yield temp_rplugin[1]
+    os.remove(temp_rplugin[1])
 
 
 @pytest.fixture
-def nvim():
-    tempdir = mkdtemp()
-    socket = op.join(tempdir, "nvim")
-    os.environ["NVIM_LISTEN_ADDRESS"] = socket
-    p = subprocess.Popen(
-        [
-            "nvim",
-            "--headless",
-            "-u",
-            "NORC",
-            "--cmd",
-            f"set packpath+={PACK_DIR}",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    for _ in range(50):
-        if op.exists(socket):
-            break
-        sleep(0.1)
-    else:
-        raise FileNotFoundError
-    nvim = attach("socket", path=os.environ["NVIM_LISTEN_ADDRESS"])
-    nvim.command("set keymap=russian-jcukenwin")
-    nvim.command("set iminsert=0")
-    yield nvim
-    nvim.quit()
-    p.terminate()
-    if op.exists(socket):
-        os.remove(socket)
+def nvim(rplugin_manifest):
+    with spawn_nvim() as nvim:
+        nvim.command("set keymap=russian-jcukenwin")
+        nvim.command("set iminsert=0")
+        yield nvim
 
 
 @pytest.mark.parametrize(
