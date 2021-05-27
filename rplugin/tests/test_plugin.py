@@ -9,10 +9,8 @@ from time import sleep
 import pytest
 from pynvim import attach
 
-import python3.nvim_cyrillic as plug
 
-EN = 0
-RU = 1
+EN, RU = 0, 1
 PACK_DIR = Path(__file__).parent.parent.parent.parent.parent.parent.parent
 NVIM_CMD = [
     "nvim", "--headless", "-u", "NORC", "--cmd", f"set packpath+={PACK_DIR}"
@@ -110,7 +108,6 @@ def test_map_last_input(nvim, string, transl, lang):
     ],
 )
 def test_map_visual_word_ru_en(nvim, string, transl, lang):
-    main = plug.Main(nvim)
     nvim.command(f"set iminsert={lang}")
     nvim.feedkeys("i")
     for c in string:
@@ -121,7 +118,7 @@ def test_map_visual_word_ru_en(nvim, string, transl, lang):
     assert cursor[1] == len(string[:-1].encode("utf-8"))
 
     nvim.feedkeys(nvim.replace_termcodes("viw<esc>"))
-    main.map_visual(args=None)
+    nvim.command("call MapVisualSelection()")
     buf = nvim.current.buffer
     assert len(buf) == 1
     assert buf[0] == transl
@@ -138,13 +135,12 @@ def test_map_visual_word_ru_en(nvim, string, transl, lang):
     ],
 )
 def test_map_visual_middle_of_word(nvim, string, transl, lang, move, targ):
-    main = plug.Main(nvim)
     nvim.command(f"set iminsert={lang}")
     nvim.feedkeys(f"i{string}")
     nvim.feedkeys(nvim.replace_termcodes("<esc>"))
 
     nvim.feedkeys(nvim.replace_termcodes(move))
-    main.map_visual(args=None)
+    nvim.command("call MapVisualSelection()")
     buf = nvim.current.buffer
     assert len(buf) == 1
     assert buf[0] == transl
