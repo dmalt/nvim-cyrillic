@@ -213,3 +213,22 @@ def test_map_last_input_word_triggered_twice(nvim, string, transl, lang):
 
     assert nvim.current.window.cursor[0] == 1
     assert nvim.current.window.cursor[1] == len(string.encode("utf-8"))
+
+
+def test_map_ins_mode_move_to_another_line(nvim):
+    nvim.command(f"set iminsert={EN}")
+    nvim.feedkeys("i")
+    string1 = "foo"
+    string2 = "bar"
+    for c in string1:
+        nvim.feedkeys(c)
+    nvim.feedkeys(nvim.replace_termcodes("<CR>"))
+    for c in string2:
+        nvim.feedkeys(c)
+    assert nvim.current.window.cursor == [2, 3]
+    nvim.feedkeys(nvim.replace_termcodes("<Up>"))
+    assert nvim.current.window.cursor == [1, 3]
+    nvim.command("call MapLastInputWord()")
+
+    assert nvim.current.buffer[0] == string1
+    assert nvim.current.buffer[1] == string2
