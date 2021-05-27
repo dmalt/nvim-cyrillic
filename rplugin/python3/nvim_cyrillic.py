@@ -31,10 +31,11 @@ class Main(object):
         self.nvim = NvimWrapper(nvim)
         self.input_start = self.input_end = self.ins_row = None
         self.prev_limits = []
+        self.update_when_text_changed = True
 
     @pynvim.function("MapLastInput", sync=True)
     def map_last_input(self, args):
-        self.map_insert(lambda : self.nvim.get_cursor()[1] - self.input_start)
+        self.map_insert(lambda: self.nvim.get_cursor()[1] - self.input_start)
 
     @pynvim.function("MapLastInputWord", sync=True)
     def map_last_input_word(self, args):
@@ -44,12 +45,19 @@ class Main(object):
     def on_insert_enter(self):
         self.ins_row = self.nvim.get_cursor()[0]
         if self.prev_limits:
-            self.input_start, self.input_end = self.prev_limits.pop()
+            (
+                self.input_start,
+                self.input_end,
+                self.ins_row,
+            ) = self.prev_limits.pop()
         else:
             self.input_start = self.input_end = self.nvim.get_cursor()[1]
 
-    @pynvim.autocmd("TextChangedI", sync=True)
+    @pynvim.autocmd("TextChangedI,TextChangedP", sync=True)
     def on_text_changed_i(self):
+        if not self.update_when_text_changed:
+            self.update_when_text_changed = True
+            return
         self.ins_row, cursor_col = self.nvim.get_cursor()
         if cursor_col > self.input_end + 1 or cursor_col <= self.input_start:
             self.input_start = cursor_col
@@ -59,15 +67,17 @@ class Main(object):
     def map_visual(self, args):
         lo = self.nvim.get_left_visual_mark()
         hi = self.nvim.get_right_visual_mark() + 1
-        mapped_text = self.nvim.map_text(self.nvim.get_line()[lo : hi])
+        mapped_text = self.nvim.map_text(self.nvim.get_line()[lo:hi])
         self.nvim.feedkeys(f"`<{hi - lo}s{mapped_text}")
         self.nvim.feedkeys("<esc>", replace_termcodes=True)
 
     def map_insert(self, nchars_getter):
         row, col = self.nvim.get_cursor()
+        self.prev_limits.append(
+            [self.input_start, self.input_end, self.ins_row]
+        )
         if self.input_start < col <= self.input_end and self.ins_row == row:
-            self.prev_limits.append([self.input_start, self.input_end])
-            self.nvim.map_nchars_back(nchars_getter())
+            self.map_nchars_back(nchars_getter())
         self.nvim.toggle_language()
 
     def get_last_word_nchars(self):
@@ -77,6 +87,14 @@ class Main(object):
                 break
         return self.nvim.get_cursor()[1] - i
 
+    def map_nchars_back(self, n_chars):
+        cursor_col = self.nvim.get_cursor()[1]
+        crop = self.nvim.get_line()[cursor_col - n_chars : cursor_col]
+        crop_mapped = self.nvim.map_text(crop)
+        self.update_when_text_changed = False
+        self.nvim.feedkeys("<BS>" * n_chars, replace_termcodes=True)
+        self.nvim.feedkeys(crop_mapped)
+
 
 class NvimWrapper(object):
     def __init__(self, nvim):
@@ -85,13 +103,6 @@ class NvimWrapper(object):
     def feedkeys(self, keys, replace_termcodes=False):
         keys = self.nvim.replace_termcodes(keys) if replace_termcodes else keys
         self.nvim.feedkeys(keys)
-
-    def map_nchars_back(self, n_chars):
-        cursor_col = self.get_cursor()[1]
-        crop = self.get_line()[cursor_col - n_chars : cursor_col]
-        crop_mapped = self.map_text(crop)
-        self.feedkeys("<BS>" * n_chars, replace_termcodes=True)
-        self.feedkeys(crop_mapped)
 
     def get_left_visual_mark(self):
         return self.byte_2_char(self.nvim.current.buffer.mark("<")[1])
@@ -125,4 +136,5 @@ if __name__ == "__main__":
     # launch nvim with
     # NVIM_LISTEN_ADDRESS=/tmp/nvim nvim
     from pynvim import attach
+
     nvim = attach("socket", path="/tmp/nvim")
