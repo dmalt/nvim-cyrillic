@@ -83,7 +83,9 @@ class Main(object):
     def get_last_word_nchars(self):
         line = self.nvim.get_line()
         for i in reversed(range(self.input_start, self.nvim.get_cursor()[1])):
-            if i and line[i - 1].isspace():
+            logger.debug(f"{i}")
+            if line[i].isspace():
+                i += 1
                 break
         return self.nvim.get_cursor()[1] - i
 
